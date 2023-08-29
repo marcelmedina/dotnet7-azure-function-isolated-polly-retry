@@ -13,21 +13,6 @@ namespace producer.Helpers
             _serviceClient = new TableServiceClient(connectionString);
         }
 
-        public TableEntity? GetEntity(string tableName, string partitionKey, string rowKey)
-        {
-            _serviceClient.CreateTableIfNotExists(tableName);
-            var tableClient = _serviceClient.GetTableClient(tableName);
-
-            try
-            {
-                return tableClient.GetEntity<TableEntity>(partitionKey, rowKey);
-            }
-            catch (RequestFailedException ex) when (ex.Status == 404)
-            {
-                return null;
-            }
-        }
-
         public int IncrementCounter(string tableName, string partitionKey, string rowKey)
         {
             var tableClient = _serviceClient.GetTableClient(tableName);
@@ -59,6 +44,21 @@ namespace producer.Helpers
             }
 
             throw new Exception($"Entity '{rowKey}' not found in table '{tableName}'.");
+        }
+
+        private TableEntity? GetEntity(string tableName, string partitionKey, string rowKey)
+        {
+            _serviceClient.CreateTableIfNotExists(tableName);
+            var tableClient = _serviceClient.GetTableClient(tableName);
+
+            try
+            {
+                return tableClient.GetEntity<TableEntity>(partitionKey, rowKey);
+            }
+            catch (RequestFailedException ex) when (ex.Status == 404)
+            {
+                return null;
+            }
         }
     }
 }
