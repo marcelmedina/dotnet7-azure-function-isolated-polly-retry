@@ -1,19 +1,20 @@
+using consumer.TypedHttpClient;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace consumer
+namespace consumer.Functions
 {
     public class TimerTriggered
     {
-        private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
+        private readonly StateCounterHttpClient _httpClient;
 
         public TimerTriggered(IHttpClientFactory httpClientFactory,
-            IConfiguration configuration)
+            IConfiguration configuration, StateCounterHttpClient httpClient)
         {
-            _httpClientFactory = httpClientFactory;
             _configuration = configuration;
+            _httpClient = httpClient;
         }
 
         [Function("TimerTriggered")]
@@ -21,11 +22,9 @@ namespace consumer
         {
             var logger = context.GetLogger<TimerTriggered>();
 
-            var httpClient = _httpClientFactory.CreateClient("PollyRetry");
+            var endpoint = _configuration.GetValue<string>(Constants.ProducerEndpoint);
 
-            var endpoint = _configuration.GetValue<string>("Values:ProducerEndpoint");
-
-            var increment = await httpClient.GetStringAsync(endpoint);
+            var increment = await _httpClient.GetStateCounter(endpoint);
 
             logger.LogInformation($"### Increment = {increment}");
         }

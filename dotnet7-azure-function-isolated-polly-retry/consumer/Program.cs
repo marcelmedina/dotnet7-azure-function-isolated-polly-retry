@@ -1,3 +1,4 @@
+using consumer.TypedHttpClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -20,13 +21,15 @@ var host = new HostBuilder()
             .HandleResult<HttpResponseMessage>(response => !response.IsSuccessStatusCode)
             .RetryAsync(3, onRetry: (message, retryCount) =>
             {
+                Console.Out.WriteLine("----------------------------------------------------");
                 Console.Out.WriteLine($"### RequestMessage: {message.Result.RequestMessage}");
-                Console.Out.WriteLine($"### Content: {message.Result.Content.ReadAsStringAsync().Result}");
+                Console.Out.WriteLine($"### StatusCode: {message.Result.StatusCode}");
                 Console.Out.WriteLine($"### ReasonPhrase: {message.Result.ReasonPhrase}");
                 Console.Out.WriteLine($"### Retry: {retryCount}");
+                Console.Out.WriteLine("----------------------------------------------------");
             });
 
-        services.AddHttpClient("PollyRetry")
+        services.AddHttpClient<StateCounterHttpClient>()
             .AddPolicyHandler(retryPolicy);
     })
     .Build();

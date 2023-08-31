@@ -5,7 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using producer.Interfaces;
 
-namespace producer
+namespace producer.Functions
 {
     public class StateCounter
     {
