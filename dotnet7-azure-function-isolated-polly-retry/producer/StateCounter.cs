@@ -10,23 +10,20 @@ namespace producer
     public class StateCounter
     {
         private readonly ITableStorageHelper _tableStorageHelper;
-        private readonly IConfiguration _configuration;
         private readonly ILogger _logger;
 
-        public StateCounter(ILoggerFactory loggerFactory, ITableStorageHelper tableStorageHelper,
-            IConfiguration configuration)
+        public StateCounter(ILoggerFactory loggerFactory, ITableStorageHelper tableStorageHelper)
         {
             _tableStorageHelper = tableStorageHelper;
-            _configuration = configuration;
             _logger = loggerFactory.CreateLogger<StateCounter>();
         }
 
         [Function(nameof(Increment))]
-        public HttpResponseData Increment([HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequestData req)
+        public HttpResponseData Increment([HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequestData req)
         {
             _logger.LogInformation("Request to increment counter.");
 
-            var isFailureEnabled = bool.Parse(_configuration[Constants.FailureEnabled]);
+            const bool isFailureEnabled = true; // variable to control failure injection
             var currentCounter = _tableStorageHelper.GetCounter(Constants.Counter, Constants.PartitionKey, Constants.Row);
 
             if (isFailureEnabled && currentCounter % 3 == 0)

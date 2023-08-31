@@ -6,6 +6,6 @@
         public const string Counter = "Counter";
         public const string PartitionKey = "Counters";
         public const string Row = "AnyRow";
-        public const string FailureEnabled = "Values:FailureEnabled";
+        public const string FailureEnabled = "FailureEnabled";
     }
 }
