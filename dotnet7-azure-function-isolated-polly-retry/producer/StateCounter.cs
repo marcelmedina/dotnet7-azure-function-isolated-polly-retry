@@ -10,11 +10,14 @@ namespace producer
     public class StateCounter
     {
         private readonly ITableStorageHelper _tableStorageHelper;
+        private readonly IConfiguration _configuration;
         private readonly ILogger _logger;
 
-        public StateCounter(ILoggerFactory loggerFactory, ITableStorageHelper tableStorageHelper)
+        public StateCounter(ILoggerFactory loggerFactory, ITableStorageHelper tableStorageHelper,
+            IConfiguration configuration)
         {
             _tableStorageHelper = tableStorageHelper;
+            _configuration = configuration;
             _logger = loggerFactory.CreateLogger<StateCounter>();
         }
 
@@ -23,8 +26,10 @@ namespace producer
         {
             _logger.LogInformation("Request to increment counter.");
 
-            const bool isFailureEnabled = true; // variable to control failure injection
-            var currentCounter = _tableStorageHelper.GetCounter(Constants.Counter, Constants.PartitionKey, Constants.Row);
+            var isFailureEnabled =
+                _configuration.GetValue<bool>(Constants.FailureEnabled); // variable to control failure injection
+            var currentCounter =
+                _tableStorageHelper.GetCounter(Constants.Counter, Constants.PartitionKey, Constants.Row);
 
             if (isFailureEnabled && currentCounter % 3 == 0)
             {

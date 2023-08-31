@@ -1,5 +1,5 @@
-using System.Net.Http.Json;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace consumer
@@ -7,23 +7,27 @@ namespace consumer
     public class TimerTriggered
     {
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly ILogger _logger;
+        private readonly IConfiguration _configuration;
 
-        public TimerTriggered(ILoggerFactory loggerFactory, IHttpClientFactory httpClientFactory)
+        public TimerTriggered(IHttpClientFactory httpClientFactory,
+            IConfiguration configuration)
         {
             _httpClientFactory = httpClientFactory;
-            _logger = loggerFactory.CreateLogger<TimerTriggered>();
+            _configuration = configuration;
         }
 
         [Function("TimerTriggered")]
-        public async Task Run([TimerTrigger("*/10 * * * * *")] object param)
+        public async Task Run([TimerTrigger("*/10 * * * * *")] FunctionContext context)
         {
+            var logger = context.GetLogger<TimerTriggered>();
+
             var httpClient = _httpClientFactory.CreateClient("PollyRetry");
 
-            var increment = await httpClient.GetStringAsync(
-                Environment.GetEnvironmentVariable("ProducerEndpoint"));
+            var endpoint = _configuration.GetValue<string>("Values:ProducerEndpoint");
 
-            _logger.LogInformation($"### Increment = {increment}");
+            var increment = await httpClient.GetStringAsync(endpoint);
+
+            logger.LogInformation($"### Increment = {increment}");
         }
     }
 }
