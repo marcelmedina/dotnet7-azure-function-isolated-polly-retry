@@ -22,11 +22,18 @@ namespace consumer.Functions
         {
             var logger = context.GetLogger<TimerTriggered>();
 
-            var endpoint = _configuration.GetValue<string>(Constants.ProducerEndpoint);
+            try
+            {
+                var endpoint = _configuration.GetValue<string>(Constants.ProducerEndpoint);
 
-            var increment = await _httpClient.GetStateCounter(endpoint);
+                var increment = await _httpClient.GetStateCounter(endpoint);
 
-            logger.LogInformation($"### Increment = {increment}");
+                logger.LogInformation($"### Increment = {increment}");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex.Message);
+            }
         }
     }
 }
