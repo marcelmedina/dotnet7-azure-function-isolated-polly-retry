@@ -24,7 +24,7 @@ namespace consumer.Functions
         }
 
         [Function("HttpTriggered")]
-        public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req)
+        public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequestData req)
         {
             try
             {

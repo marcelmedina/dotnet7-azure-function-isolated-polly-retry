@@ -1,1 +1,1 @@
-POST http://localhost:7067/api/HttpTriggered
+GET http://localhost:7067/api/HttpTriggered
