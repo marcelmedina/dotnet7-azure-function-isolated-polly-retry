@@ -3,7 +3,8 @@
   "Values": {
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
-    "FailureEnabled": true
+    "FailureEnabled": true,
+    "RandomFailureEnabled": false
   },
   "ConnectionStrings": {
     "TableStorage": "UseDevelopmentStorage=true"
