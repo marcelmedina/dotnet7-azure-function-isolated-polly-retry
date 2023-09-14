@@ -1,4 +1,3 @@
-using System;
 using System.Net;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -27,35 +26,44 @@ namespace producer.Functions
         {
             _logger.LogInformation("Request to increment counter.");
 
-            var isFailureEnabled = _configuration.GetValue<bool>(Constants.FailureEnabled); // variable to control failure injection
-            var isRandomFailureEnabled = _configuration.GetValue<bool>(Constants.RandomFailureEnabled); // variable to control random failure injection
-            var currentCounter = _tableStorageHelper.GetCounter(Constants.Counter, Constants.PartitionKey, Constants.Row);
-
-            if (IsFailureEnabledWithMod(isFailureEnabled, currentCounter, 3))
+            try
             {
-                const string errorMessage = "Counter is divisible by 3, throwing exception.";
-                _logger.LogError(errorMessage);
-                throw new Exception(errorMessage);
-            }
+                var isFailureEnabled = _configuration.GetValue<bool>(Constants.FailureEnabled); // variable to control failure injection
+                var isRandomFailureEnabled = _configuration.GetValue<bool>(Constants.RandomFailureEnabled); // variable to control random failure injection
+                var currentCounter = _tableStorageHelper.GetCounter(Constants.Counter, Constants.PartitionKey, Constants.Row);
 
-            if (IsFailureEnabledWithRandom(isRandomFailureEnabled))
+                if (IsFailureEnabledWithMod(isFailureEnabled, currentCounter, 3))
+                {
+                    const string errorMessage = "Counter is divisible by 3, throwing exception.";
+                    throw new Exception(errorMessage);
+                }
+
+                if (IsFailureEnabledWithRandom(isRandomFailureEnabled))
+                {
+                    const string errorMessage = "Random exception raised.";
+                    throw new Exception(errorMessage);
+                }
+
+                var counter = _tableStorageHelper.IncrementCounter(Constants.Counter, Constants.PartitionKey, Constants.Row);
+
+                var response = req.CreateResponse(HttpStatusCode.OK);
+                response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
+
+                var message = $"Current counter: {counter}";
+                _logger.LogInformation(message);
+                response.WriteString(message);
+
+                return response;
+            }
+            catch (Exception ex)
             {
-                const string errorMessage = "Random exception raised.";
-                _logger.LogError(errorMessage);
-                throw new Exception(errorMessage);
+                _logger.LogError(ex.Message);
+
+                var response = req.CreateResponse(HttpStatusCode.InternalServerError);
+                response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
+                response.WriteString(ex.Message);
+                return response;
             }
-
-            var counter =
-                _tableStorageHelper.IncrementCounter(Constants.Counter, Constants.PartitionKey, Constants.Row);
-
-            var response = req.CreateResponse(HttpStatusCode.OK);
-            response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
-
-            var message = $"Current counter: {counter}";
-            _logger.LogInformation(message);
-            response.WriteString(message);
-
-            return response;
         }
 
         private static bool IsFailureEnabledWithMod(bool isFailureEnabled, int currentCounter, int modNumber)
